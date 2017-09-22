@@ -7,7 +7,7 @@
 #include <sfml/graphics.hpp>
 #include <windows.h>
 #include <math.h>
-
+#include <assert.h>
 
 //{Structs&Functions__PROTOTYPES-----------------------------------------------
 //-----------------------------------------------------------------------------
@@ -43,8 +43,9 @@ struct      Mc      : Object
         const sf::IntRect &rectangle,
           int rotation = 0);
 
-    virtual void logic() override;
-    virtual void draw () override;
+    virtual void logic () override;
+    virtual void draw  () override;
+    virtual void update() override;
 
 	void control();
 	};
@@ -66,13 +67,11 @@ struct StaticObject : Object
 
 struct     Map      : Object
     {
-    sf::IntRect rectangle_;
     std::vector<StaticObject> Objects_;
     //-------------------
     Map (const Vector &size = Vector(800, 600),
          const Vector &pos = Vector(0, 0),
-         const sf::Texture &tex = sf::Texture(),
-         const sf::IntRect &rectangle = sf::IntRect(-1, -1, -1, -1));
+         const sf::Texture &tex = sf::Texture());
 
     //virtual void logic () override;
 	virtual void update() override;
@@ -88,12 +87,13 @@ struct Engine
     //-------------------
     Engine ();
 
-    void add ();
-    void dance_like_nobody_watching  ();
+    void add (Object* pls_serve_me_senpai);
+    void work  ();
     };
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
+//------------------virtual void draw () override;-----------------------------------------------------------
 
 Object* CheckCollision(Map& map, Vector pos, float radius);
 void check_for_events ();
@@ -117,6 +117,12 @@ float VMAX = 15;
 const float EPS = 0.000001f;
 Vector Weight (1,1);
 const float DEGREESINRADIAN = (float) (180/M_PI);
+
+
+Vector  cameraPos (0, 0);
+Vector  cameraSiz (800, 600);
+sf::Vector2<int> mapSize (2000, 2000);
+
 //}
 //-----------------------------------------------------------------------------
 
@@ -164,7 +170,10 @@ void Object::update()
 
 void Object::draw()
 	{
-	Window->draw(sprite_);
+
+    sf::Sprite fakeSprite (sprite_);
+    fakeSprite.move (-cameraPos.x, -cameraPos.y);
+	Window->draw(fakeSprite);
 	}
 
 //}----------------------------------------------------------------------------
@@ -202,7 +211,11 @@ void StaticObject::update()
 
 void StaticObject::draw()
 	{
-	Window->draw(shape_);
+
+    sf::CircleShape fakeShape (shape_);
+    fakeShape.move (-cameraPos.x, -cameraPos.y);
+
+	Window->draw(fakeShape);
 	}
 
 //}
@@ -264,6 +277,15 @@ void Mc::draw()
 
     Window->draw(sprite_);
     }
+
+//-----------------------------------------------------------------------------
+
+void Mc::update()
+	{
+	cameraPos += v_;
+	sprite_.setPosition (pos_);
+	}
+
 //}
 //-----------------------------------------------------------------------------
 
@@ -272,16 +294,13 @@ void Mc::draw()
 
 Map::Map (const Vector &size,
           const Vector &pos,
-          const sf::Texture &tex,
-          const sf::IntRect &rectangle) :
-    Object(),
-    rectangle_ (rectangle)
+          const sf::Texture &tex) :
+    Object()
     {
 
-    if (tex_.getSize() == Vector(0, 0)) tex_.create(/*unsigned int*/ (size.x),
-                                                   /* unsigned int */(size.y));
-    if (rectangle_ == sf::IntRect(-1, -1, -1, -1)) rectangle_ = TheWholeTextureRect (tex);
-    sprite_ = sf::Sprite(tex, rectangle);
+    if (tex_.getSize() == Vector(0, 0)) tex_.create( (unsigned int) size.x,
+                                                     (unsigned int) size.y );
+    sprite_ = sf::Sprite(tex, TheWholeTextureRect (tex) );
     }
 
 //=============================================================================
@@ -326,28 +345,30 @@ Engine::Engine ()
 
 //-----------------------------------------------------------------------------
 
-void add (Object* p_obj);
+void Engine::add (Object* p_obj)
     {
+    assert(p_obj);
     Objects_.push_back(p_obj);
     }
 
 //-----------------------------------------------------------------------------
 
-void do  ();
+void Engine::work  ()
     {
     lowing_game_speed();
     check_for_events();
 
     Window->clear();
 
-    for (auto& obj : Objects_)
+    for (auto& p_obj : Objects_)
         {
-        obj.update();
-        obj.logic();
-        obj.draw();
+        p_obj->update();
+        p_obj->logic();
+        p_obj->draw();
         }
     Window->display();
     }
+
 //}
 //-----------------------------------------------------------------------------
 
@@ -360,6 +381,7 @@ void do  ();
 
 int main()
 	{
+	srand(unsigned (time(nullptr)));
 	sf::RenderWindow window (sf::VideoMode (800, 600), "okoshe4ko");
 	Window = &window;
 
@@ -372,19 +394,19 @@ void temp_game_proc ()
 	{
 
 	sf::Texture txtr;       txtr.loadFromFile ("image1.png");
-	Mc player(Vector(500, 500), txtr, sf::IntRect (0, 0, txtr.getSize().x, txtr.getSize().y));
+	Mc player(Vector(cameraSiz.x/2, cameraSiz.y/2), txtr, sf::IntRect (0, 0, txtr.getSize().x, txtr.getSize().y));
 
     Map map;
-    SpawnTheStars(map, Vector(5, 20), 15);
+    SpawnTheStars(map, Vector(5, 20), 135);
 
-    Engine engine ();
-    engine.add (map);
-    engine.add (player);
+    Engine engine;
+    engine.add (&map);
+    engine.add (&player);
 
 
 	while (Window->isOpen() )
 		{
-		engine.do();
+		engine.work();
 		}
 
 	}
@@ -392,11 +414,12 @@ void temp_game_proc ()
 //-----------------------------------------------------------------------------
 void SpawnTheStars(Map& map, Vector starSizeRange, int nStars)
     {
-    srand(time(nullptr));
     for (int i = 0, limit = 0; i < nStars && limit < nStars+100; i++, limit++)
         {
-        Vector randPos = Vector (rand() % 750 + 25, rand() % 550 + 25);
-        sf::CircleShape shape (rand()%100/4+20, rand()%2*2 + 5);
+        int randR = rand()%100/4+20;
+
+        Vector randPos = Vector (rand() % (mapSize.x - 2*randR) + randR, rand() % (mapSize.y - 2*randR) + randR);
+        sf::CircleShape shape (randR, rand()%2*2 + 5);
 
         StaticObject meteor (randPos, shape, (rand()%3*4-3)*3 );
 

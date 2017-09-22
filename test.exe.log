@@ -1,0 +1,153 @@
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe,
+
+ВНЕЗАПНО: std::terminate(): Неперехваченное исключение в функции main() или в деструкторе, или другая фатальная ошибка C++. Исключение С++, вызванное оператором throw.
+
+#1: Исключение EXCEPTION_CPP_GCC (0x20474343) при выполнении кода по адресу 0x000007FEFD1CA06D в функции RaiseException(). Спасибо _txVectoredExceptionHandler(), что сообщил. Люблю его <3
+
+Объект исключения C++: std::bad_alloc, what(): "std::bad_alloc", его адрес 0x000000000059FAB0.
+
+Используйте try/catch блоки, перехватывайте catch (...), проверяйте вызовы виртуальных функций, разбирайтесь, в чем дело.
+
+С помощью std::set_terminate() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 105], Instance: 0x0000000000451898 (64-bit), Flags: Cmdre0, Thread: 0x12F0 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x000007FEFD1CA06D in C:\Windows\system32\KERNELBASE.dll: RaiseException()
+# 1 0x000000006144D186 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\libgcc_s_seh-1.dll: Unwind_RaiseException()
+# 2 0x000000006FD07BDE in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\libstdc++-6.dll: _cxa_throw()
+# 3 0x000000006FCFDB32 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\libstdc++-6.dll: ZSt17__throw_bad_allocv()
+
+# 4 0x000000000043410D in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: allocate() at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+# 5 0x0000000000436336 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: allocate() at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+# 6 0x0000000000438927 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: _M_allocate() at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+# 7 0x0000000000438A10 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: _M_create_storage() at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+# 8 0x0000000000438AAA in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+# 9 0x00000000004391F8 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+#10 0x00000000004376AE in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+#11 0x0000000000433370 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+#12 0x000000000043385A in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+#13 0x0000000000433270 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Program Files (x86)/CodeBlocks/MinGW/x86_64-w64-mingw32/include/stdio.h (303):
+
+    301:   __builtin_va_end( __local_argv );
+    302:   return __retval;
+=>  303: }
+    304: 
+    305: __mingw_ovr
+
+#14 0x0000000000427590 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe at C:/Users/Тимофей/Desktop/информатика/sfml/sfml_gama/test.cpp (166):
+
+    164:     shape_(shape),
+    165:     rotationSpeed_(rotationSpeed),
+=>  166:     radius_(shape.getRadius())
+    167:     {
+    168:     auto rect = shape_.getLocalBounds();
+
+#15 0x00000000004285B3 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: SpawnTheStars() at C:/Users/Тимофей/Desktop/информатика/sfml/sfml_gama/test.cpp (358):
+
+    356:         sf::CircleShape shape (rand()%100/4+20, rand()%2*2 + 5);
+    357: 
+=>  358:         StaticObject meteor (randPos, shape, (rand()%3*4-3)*3 );
+    359: 
+    360:         if (CheckCollision (map, meteor.pos_, meteor.radius_)) { i--; continue; }
+
+#16 0x00000000004281DC in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: temp_game_proc() at C:/Users/Тимофей/Desktop/информатика/sfml/sfml_gama/test.cpp (327):
+
+    325: 
+    326:     Map map;
+=>  327:     SpawnTheStars(map, Vector(5, 20), 15);
+    328: 	Mc player(Vector(500, 500), txtr, sf::IntRect (0, 0, txtr.getSize().x, txtr.getSize().y));
+    329: 	while (Window->isOpen() )
+
+#17 0x0000000000427FD9 in C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe: main() at C:/Users/Тимофей/Desktop/информатика/sfml/sfml_gama/test.cpp (316):
+
+    314: 	Window = &window;
+    315: 
+=>  316: 	temp_game_proc ();
+    317: 	}
+    318: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library) - TXLib [Ver: 00173a, Rev: 105]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Program Files (x86)\TX\TXLib.h
+Compiled:	Sep 16 2017 21:11:18, GNU g++ 6.1.0, std=201402L, MinGW-W64 Runtime 5.0 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Sep 16 2017 21:11:28
+
+Run file:	C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama\test.exe
+Directory:	C:\Users\Тимофей\Desktop\информатика\sfml\sfml_gama
+
+--------------------------------------------------
