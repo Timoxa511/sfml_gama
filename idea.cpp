@@ -24,11 +24,11 @@ Vector Weight (1,1);
 const float DEGREESINRADIAN = (float) (180/M_PI);
 
 
-const sf::Vector2<int> MapSize (1600, 1600);
+const sf::Vector2<int> MapSize (800, 800);
 Vector  CameraPos (0, 0);
 const Vector  CameraSiz (800, 800);
 
-const int NStars = 5;
+const int NStars = 10;
 
 //}
 //-----------------------------------------------------------------------------
@@ -39,6 +39,8 @@ const int NStars = 5;
 
 struct Object
 	{
+	enum TYPE {MC, STATICOBJECT, FON};
+	TYPE type_;
 	Vector screenPos_;
 	Vector mapPos_;
 	Vector v_;
@@ -46,7 +48,8 @@ struct Object
 	sf::Sprite sprite_;
 	//--------------------
 	Object ();
-	Object (const Vector &pos,
+	Object (TYPE type;
+            const Vector &pos,
             const sf::Texture &tex,
             const sf::IntRect &rectangle);
     virtual ~Object () {};
@@ -64,6 +67,7 @@ struct      Mc      : Object
         const sf::Texture &tex,
         const sf::IntRect &rectangle,
           int rotation = 0);
+    virtual ~Mc () override  {};
 
     virtual void logic () override;
     virtual void draw  () override;
@@ -81,51 +85,52 @@ struct StaticObject : Object
     StaticObject (const Vector &pos,
                   const sf::CircleShape &tex,
                     int rotationSpeed);
+    virtual ~StaticObject () override {};
 
     virtual void logic () override;
 	virtual void update() override;
 	virtual void draw  () override;
     };
 
-struct     Map      : Object
+struct      Fon     : Object    //todo
     {
-    std::vector<StaticObject> Objects_;
-    //-------------------
-    Map (const Vector &size = Vector(800, 600),
-         const Vector &pos = Vector(0, 0),
-         const sf::Texture &tex = sf::Texture());
+    //----------------------
+    Fon
+    virtual ~Fon () override {};
 
-    //virtual void logic () override;
-	virtual void update() override;
-	virtual void draw  () override;
-
-	void generate();
-	void add(const StaticObject& object);
+    virtual void logic () override;
+    virtual void draw  () override;
+    virtual void update() override;
     };
+
 
 struct Engine
     {
     std::vector <Object*> Objects_;
+    std::vector <Fon*> Fons_;
     //-------------------
     Engine ();
+   ~Engine () {};
 
-    void add (Object* pls_serve_me_senpai);
-    void work  ();
+    void add (Object* pls_take_care_of_me_senpai);
+    void run  ();
     };
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-Object* CheckCollision(Map& map, Vector pos, float radius);
+
 void check_for_events ();
-void temp_game_proc ();
 void lowing_game_speed ();
-void SpawnTheStars(Map& map, sf::Vector2 <int> starSizeRange, int nStars);
+
 Vector vNormalize (Vector longV);
 const sf::IntRect TheWholeTextureRect (const sf::Texture &tex);
 double hypot (const Vector& v1, const Vector& v2);
+
+void SpawnTheStars(Engine* engine, sf::Vector2 <int> starSizeRange, int nStars);
 void WritePlayerCords (const Mc* player);
+Object* CheckCollision(Engine* engine, Vector pos, float radius);
 
 bool operator == (const Vector& lvalue, const sf::Vector2u& rvalue);
 bool operator == (const sf::Vector2u& lvalue, const Vector& rvalue);
@@ -134,6 +139,8 @@ bool operator == (const sf::IntRect& lvalue, const sf::IntRect& rvalue);
 Vector operator % (const Vector& lvalue, const  sf::Vector2<int>& rvalue);
 Vector operator % (const Vector& lvalue, const      Vector&       rvalue);
 //float  operator % (const float&  lvalue, const      float&        rvalue);     CYKA XYLU
+
+void temp_game_proc ();
 
 //{templates-------------------------------------------------------------------
 
@@ -198,9 +205,9 @@ void Object::logic()
 
 void Object::update()
 	{
-	/*mapPos_ += v_;
+	mapPos_ += v_;
 	screenPos_ = mapPos_ - CameraPos;
-	sprite_.setPosition (screenPos_);*/
+	sprite_.setPosition (screenPos_);
 	}
 
 //-----------------------------------------------------------------------------
@@ -237,9 +244,10 @@ void StaticObject::logic ()
 //-----------------------------------------------------------------------------
 
 void StaticObject::update()
-    {
+    {//начало координат у окна в левом верхнем углу, а мне нужно,
+     //чтобы корабль в начале игры спавнился в начале координат и в центре одновременно, поэтому
+     //я двигаю центр координат из левого верхнего угла в центр, добавляя половину экрана
     Vector defaultDif (CameraSiz/2);
-    shape_.rotate(float (rotationSpeed_*0.2));
 
 	screenPos_ = defaultDif + mapPos_ - CameraPos;
     shape_.setPosition (screenPos_);
@@ -249,95 +257,50 @@ void StaticObject::update()
 
 void StaticObject::draw()
 	{
-    /*double prec = 10000000.0;
-    sf::CircleShape fakeShape (shape_);
+    draw_according_to_round_map();
+	}
+
+//-----------------------------------------------------------------------------
+
+void StaticObject::draw_according_to_round_map()
+    {
+    Vector origScreenPosition (sprite_.getPosition());
+    sf::Sprite fakeSprite (sprite_);
+
+    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 && -MapSize.y/2 < CameraPos.y-CameraSiz.y/2 && CameraPos.y+CameraSiz.y/2 < MapSize.y/2)
+        {
+        fakeSprite.setPosition(origScreenPosition.x + MapSize.x, origScreenPosition.y);
+        Window->draw(fakeSprite);
+        }
+    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 && -MapSize.y/2 < CameraPos.y-CameraSiz.y/2 && CameraPos.y+CameraSiz.y/2 < MapSize.y/2)
+        {
+        fakeSprite.setPosition(origScreenPosition.x - MapSize.x, origScreenPosition.y);
+        Window->draw(fakeSprite);
+        }
+                                                                                                                            //todo <= or >= !!!!
+
+    if (CameraPos.y+CameraSiz.y/2 > MapSize.y/2 && -MapSize.x/2 < CameraPos.x-CameraSiz.x/2 && CameraPos.x+CameraSiz.x/2 < MapSize.x/2)
+        {
+        fakeSprite.setPosition(origScreenPosition.x, origScreenPosition.y + MapSize.y);
+        Window->draw(fakeSprite);
+        }
+                                                                                                                                  //todo 4 corner situations
+    if (CameraPos.y-CameraSiz.y/2 < -MapSize.y/2 && -MapSize.x/2 < CameraPos.x-CameraSiz.x/2 && CameraPos.x+CameraSiz.x/2 < MapSize.x/2)
+        {
+        fakeSprite.setPosition(origScreenPosition.x, origScreenPosition.y - MapSize.y);
+        Window->draw(fakeSprite);
+        }
+
+
+    double prec = 10000000.0;
+
     fakeShape.setPosition ( (fmod ((fakeShape.getPosition().x + MapSize.x*123456.0) * prec, MapSize.x * prec) )/prec  ,                //todo 4epe3 if
                             (fmod ((fakeShape.getPosition().y + MapSize.y*123456.0) * prec, MapSize.y * prec) )/prec  );
 
-	//Window->draw(fakeShape);
-	Window->draw(shape_);        */
-	/*Window->draw(shape_);
-    sf::CircleShape fakeShape  (shape_);
-
-    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 )
-        {
-        //printf ("r    ");
-        fakeShape.setPosition(screenPos_.x + MapSize.x, screenPos_.y);
-        Window->draw(fakeShape);
-        }
-    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 )
-        {
-        fakeShape.setPosition(screenPos_.x - MapSize.x, screenPos_.y);
-        Window->draw(fakeShape);
-        }
 
 
-    if (CameraPos.y+CameraSiz.y/2 > MapSize.y/2 )
-        {
-        fakeShape.setPosition(screenPos_.x, screenPos_.y + MapSize.y);
-        Window->draw(fakeShape);
-        }
 
-    if (CameraPos.y-CameraSiz.y/2 < -MapSize.y/2 )
-        {
-        fakeShape.setPosition(screenPos_.x, screenPos_.y - MapSize.y);
-        Window->draw(fakeShape);
-        }
-    //---------------------------------------------------
-    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 && CameraPos.y+CameraSiz.y/2 > MapSize.y/2)
-        {
-        //printf ("r    ");
-        fakeShape.setPosition(screenPos_ + (Vector)MapSize);
-        Window->draw(fakeShape);
-        }
-    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 && CameraPos.y-CameraSiz.y/2 < -MapSize.y/2)
-        {
-        fakeShape.setPosition(screenPos_ - (Vector)MapSize);
-        Window->draw(fakeShape);
-        }
-
-
-    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 && CameraPos.y+CameraSiz.y/2 > MapSize.y/2 )
-        {
-        fakeShape.setPosition(screenPos_.x - MapSize.x, screenPos_.y + MapSize.y);
-        Window->draw(fakeShape);
-        }
-
-    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 && CameraPos.y-CameraSiz.y/2 < -MapSize.y/2 )
-        {
-        fakeShape.setPosition(screenPos_.x + MapSize.x, screenPos_.y - MapSize.y);
-        Window->draw(fakeShape);
-        }
-
-
-    CameraPos = CameraPos % MapSize;   */
-    Window->draw(shape_);
-
-    sf::Vector2<int> moveprg (0, 0);
-
-    if (CameraPos.x + CameraSiz.x/2 >  MapSize.x/2) moveprg.x = +1;
-    if (CameraPos.x - CameraSiz.x/2 < -MapSize.x/2) moveprg.x = -1;
-    if (CameraPos.y + CameraSiz.y/2 >  MapSize.y/2) moveprg.y = +1;
-    if (CameraPos.y - CameraSiz.y/2 < -MapSize.y/2) moveprg.y = -1;
-
-    int times_to_draw = abs(moveprg.x) + abs(moveprg.y);
-    if (times_to_draw)
-        {
-        sf::CircleShape fakeShape (shape_);
-
-        fakeShape.setPosition(screenPos_.x + MapSize.x*moveprg.x, screenPos_.y + MapSize.y*moveprg.y);
-        Window->draw(fakeShape);
-        if (times_to_draw == 2)
-            {
-            fakeShape.setPosition(screenPos_.x, screenPos_.y + MapSize.y*moveprg.y);
-            Window->draw(fakeShape);
-            fakeShape.setPosition(screenPos_.x + MapSize.x*moveprg.x, screenPos_.y);
-            Window->draw(fakeShape);
-            }
-        }
-    CameraPos = CameraPos % MapSize;
 	}
-
 //}
 //-----------------------------------------------------------------------------
 
@@ -395,14 +358,12 @@ void Mc::logic()
 
 void Mc::update()
 	{
-	//mapPos_   += v_;
-	//mapPos_ = mapPos_ % MapSize;
+	mapPos_   += v_;
 	CameraPos += v_;
 
-	screenPos_ = CameraSiz/2; // + mapPos_ - CameraPos; это по сути ни фига не позиция на карте, это просто перемещение, да еще и равное глобальной переменно camerapos
-	sprite_.setPosition (screenPos_);                       //смысла в этом нету
-    sprite_.setRotation(float(rotation_));
-
+	screenPos_ = CameraSiz/2 + mapPos_ - CameraPos; //по сути просто CameraSiz/2
+	sprite_.setPosition (screenPos_);
+	sprite_.setRotation(float(rotation_));
 	}
 
 //-----------------------------------------------------------------------------
@@ -417,55 +378,7 @@ void Mc::draw()
 //-----------------------------------------------------------------------------
 
 
-//{Map::-----------------------------------------------------------------------
-
-Map::Map (const Vector &size,
-          const Vector &pos,
-          const sf::Texture &tex) :
-    Object()
-    {
-
-    if (tex_.getSize() == Vector(0, 0)) tex_.create( (unsigned int) size.x,
-                                                     (unsigned int) size.y );
-
-    sprite_ = sf::Sprite(tex, TheWholeTextureRect (tex) );
-    }
-
-//=============================================================================
-
-void Map::draw()
-    {
-
-    Window->draw(sprite_);
-    for (auto& Object : Objects_)
-        {
-        Object.draw();
-        }
-    }
-
-//-----------------------------------------------------------------------------
-
-void Map::add(const StaticObject& object)
-    {
-    Objects_.push_back(object);
-    }
-
-//-----------------------------------------------------------------------------
-
-void Map::update()
-    {
-    for (auto& Object : Objects_)
-        {
-
-        Object.update();
-        }
-    }
-
-//}
-//-----------------------------------------------------------------------------
-
-
-//{Engine-----------------------------------------------------------------------
+//{Engine::---------------------------------------------------------------------
 
 Engine::Engine ()
     {}
@@ -475,12 +388,13 @@ Engine::Engine ()
 void Engine::add (Object* p_obj)
     {
     assert(p_obj);
-    Objects_.push_back(p_obj);
+    if (p_obj->type_ == FON) Fons_.push_back(p_obj);
+    else Objects_.push_back(p_obj);
     }
 
 //-----------------------------------------------------------------------------
 
-void Engine::work  ()
+void Engine::run  ()
     {
     lowing_game_speed();
     check_for_events();
@@ -489,9 +403,10 @@ void Engine::work  ()
 
     for (auto& p_obj : Objects_)
         {
-        p_obj->update();
         p_obj->logic();
+        p_obj->update();
         p_obj->draw();
+
         }
     Window->display();
     }
@@ -503,7 +418,7 @@ void Engine::work  ()
 //}
 //-----------------------------------------------------------------------------
 
-//{Functions::-----------------------------------------------------------------
+//{Functions-------------------------------------------------------------------
 
 
 int main()
@@ -512,36 +427,43 @@ int main()
 	sf::RenderWindow window (sf::VideoMode (CameraSiz.x, CameraSiz.y), "okoshe4ko");
 	Window = &window;
 
-	temp_game_proc ();
+    sf::Texture player_txtr;
+    sf::Texture star_sprite;
+    sf::Texture    fon_txtr;
+
+    star_sprite.loadFromFile   ("stars1.png");
+    fon_sprite.loadFromFile    ("fon1.png");
+	player_sprite.loadFromFile ("shep1.png");
+
+	temp_game_proc (fon_sprite, player_sprite, star_sprite);
 	}
 
 //-----------------------------------------------------------------------------
 
-void temp_game_proc ()
+void temp_game_proc (sf::Texture fon_tex,
+                     sf::Texture player_tex,
+                     sf::Texture star_tex)
 	{
-
-
-
-	sf::Texture txtr;       txtr.loadFromFile ("shep1.png");
-	Mc player(Vector(0, 0), txtr, sf::IntRect (0, 0, txtr.getSize().x, txtr.getSize().y));
-
-    Map map;
-    SpawnTheStars(map, sf::Vector2<int>(100, 130), /*NStars*/ 19);
-
     Engine engine;
-    engine.add (&map);
-    engine.add (&player);
 
+	Mc player (Vector(0, 0), player_sprite,     sf::IntRect (0, 0, player_tex.getSize().x, player_tex.getSize().y) );
+	Fon fon (fon_tex);
+
+    SpawnTheStars      (&engine, star_tex, sf::Vector2<int>(15, 30), NStars);
+    SpawnTheEnemysheps (&engine, NSheps....);
+
+    engine.add (&player);
+    engine.add (&fon);
 
 	while (Window->isOpen() )
 		{
-		engine.work();
+		engine.run();
 		}
 
 	}
 
 //-----------------------------------------------------------------------------
-void SpawnTheStars(Map& map, sf::Vector2 <int> starSizeRange, int nStars)
+void SpawnTheStars (Engine* p_engine, sf::Texture star_tex, sf::Vector2 <int> starSizeRange, int nStars)
     {
     for (int i = 0, limit = 0; i < nStars && limit < nStars+100; i++, limit++)
         {
@@ -552,31 +474,25 @@ void SpawnTheStars(Map& map, sf::Vector2 <int> starSizeRange, int nStars)
         Vector randPos = Vector (rand() % (MapSize.x + 1) - MapSize.x/2,
                                  rand() % (MapSize.y + 1) - MapSize.y/2);
 
-        sf::Color randCol (rand()%255, rand()%255, rand()%255);                                    //mappos должна быть абсолюто лоической а для рисования есть screenpos тут нужно разобраться.
-        sf::CircleShape shp (randR, randAngleMilt);                                                                   //тут логическая позиция вычисляется относительно нуля экрана а не карты
-        shp.setFillColor (randCol);                                                                                                     //возможно не только тут
-        StaticObject meteor (randPos, shp,  randRotation);
 
-        if (CheckCollision (map, meteor.mapPos_, meteor.radius_)) { i--; continue; }                     //DONE IT  no
+        sf::CircleShape shp (randR, randAngleMilt);
+        StaticObject* meteor = new StaticObject (randPos, shp,  randRotation);
 
-        map.add (meteor);
+        if (CheckCollision (p_engine, meteor->mapPos_, meteor->radius_)) { i--; continue; }
+
+        p_engine->add (meteor);
         }
     }
 
 //-----------------------------------------------------------------------------
 
-void RoundMap(Map* p_map, Mc* p_player)
-    {
-
-
-    }
 
 //-----------------------------------------------------------------------------
-Object* CheckCollision(Map& map, Vector pos, float radius)
+Object* CheckCollision(Engine* p_engine, Vector pos, float radius)
     {
-    for (auto& object : map.Objects_)
+    for (auto& p_object : p_engine->Objects_)
         {
-        if (hypot(object.mapPos_, pos) < object.radius_+radius) return &object;
+        if (hypot(p_object->mapPos_, pos) < 50) return p_object;
         }
     return NULL;
     }

@@ -24,11 +24,11 @@ Vector Weight (1,1);
 const float DEGREESINRADIAN = (float) (180/M_PI);
 
 
-const sf::Vector2<int> MapSize (800, 800);
+const sf::Vector2<int> MapSize (1600, 1600);
 Vector  CameraPos (0, 0);
 const Vector  CameraSiz (800, 800);
 
-const int NStars = 50;
+const int NStars = 5;
 
 //}
 //-----------------------------------------------------------------------------
@@ -198,9 +198,9 @@ void Object::logic()
 
 void Object::update()
 	{
-	mapPos_ += v_;
+	/*mapPos_ += v_;
 	screenPos_ = mapPos_ - CameraPos;
-	sprite_.setPosition (screenPos_);
+	sprite_.setPosition (screenPos_);*/
 	}
 
 //-----------------------------------------------------------------------------
@@ -238,9 +238,10 @@ void StaticObject::logic ()
 
 void StaticObject::update()
     {
+    Vector defaultDif (CameraSiz/2);
     shape_.rotate(float (rotationSpeed_*0.2));
 
-	screenPos_ = mapPos_ - CameraPos;
+	screenPos_ = defaultDif + mapPos_ - CameraPos;
     shape_.setPosition (screenPos_);
     }
 
@@ -248,13 +249,93 @@ void StaticObject::update()
 
 void StaticObject::draw()
 	{
-    double prec = 10000000.0;
+    /*double prec = 10000000.0;
     sf::CircleShape fakeShape (shape_);
     fakeShape.setPosition ( (fmod ((fakeShape.getPosition().x + MapSize.x*123456.0) * prec, MapSize.x * prec) )/prec  ,                //todo 4epe3 if
                             (fmod ((fakeShape.getPosition().y + MapSize.y*123456.0) * prec, MapSize.y * prec) )/prec  );
 
-	Window->draw(fakeShape);
-	Window->draw(shape_);
+	//Window->draw(fakeShape);
+	Window->draw(shape_);        */
+	/*Window->draw(shape_);
+    sf::CircleShape fakeShape  (shape_);
+
+    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 )
+        {
+        //printf ("r    ");
+        fakeShape.setPosition(screenPos_.x + MapSize.x, screenPos_.y);
+        Window->draw(fakeShape);
+        }
+    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 )
+        {
+        fakeShape.setPosition(screenPos_.x - MapSize.x, screenPos_.y);
+        Window->draw(fakeShape);
+        }
+
+
+    if (CameraPos.y+CameraSiz.y/2 > MapSize.y/2 )
+        {
+        fakeShape.setPosition(screenPos_.x, screenPos_.y + MapSize.y);
+        Window->draw(fakeShape);
+        }
+
+    if (CameraPos.y-CameraSiz.y/2 < -MapSize.y/2 )
+        {
+        fakeShape.setPosition(screenPos_.x, screenPos_.y - MapSize.y);
+        Window->draw(fakeShape);
+        }
+    //---------------------------------------------------
+    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 && CameraPos.y+CameraSiz.y/2 > MapSize.y/2)
+        {
+        //printf ("r    ");
+        fakeShape.setPosition(screenPos_ + (Vector)MapSize);
+        Window->draw(fakeShape);
+        }
+    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 && CameraPos.y-CameraSiz.y/2 < -MapSize.y/2)
+        {
+        fakeShape.setPosition(screenPos_ - (Vector)MapSize);
+        Window->draw(fakeShape);
+        }
+
+
+    if (CameraPos.x-CameraSiz.x/2 < -MapSize.x/2 && CameraPos.y+CameraSiz.y/2 > MapSize.y/2 )
+        {
+        fakeShape.setPosition(screenPos_.x - MapSize.x, screenPos_.y + MapSize.y);
+        Window->draw(fakeShape);
+        }
+
+    if (CameraPos.x+CameraSiz.x/2 > MapSize.x/2 && CameraPos.y-CameraSiz.y/2 < -MapSize.y/2 )
+        {
+        fakeShape.setPosition(screenPos_.x + MapSize.x, screenPos_.y - MapSize.y);
+        Window->draw(fakeShape);
+        }
+
+
+    CameraPos = CameraPos % MapSize;   */
+    Window->draw(shape_);
+
+    sf::Vector2<int> moveprg (0, 0);
+
+    if (CameraPos.x + CameraSiz.x/2 >  MapSize.x/2) moveprg.x = +1;
+    if (CameraPos.x - CameraSiz.x/2 < -MapSize.x/2) moveprg.x = -1;
+    if (CameraPos.y + CameraSiz.y/2 >  MapSize.y/2) moveprg.y = +1;
+    if (CameraPos.y - CameraSiz.y/2 < -MapSize.y/2) moveprg.y = -1;
+
+    int times_to_draw = abs(moveprg.x) + abs(moveprg.y);
+    if (times_to_draw)
+        {
+        sf::CircleShape fakeShape (shape_);
+
+        fakeShape.setPosition(screenPos_.x + MapSize.x*moveprg.x, screenPos_.y + MapSize.y*moveprg.y);
+        Window->draw(fakeShape);
+        if (times_to_draw == 2)
+            {
+            fakeShape.setPosition(screenPos_.x, screenPos_.y + MapSize.y*moveprg.y);
+            Window->draw(fakeShape);
+            fakeShape.setPosition(screenPos_.x + MapSize.x*moveprg.x, screenPos_.y);
+            Window->draw(fakeShape);
+            }
+        }
+    CameraPos = CameraPos % MapSize;
 	}
 
 //}
@@ -314,18 +395,20 @@ void Mc::logic()
 
 void Mc::update()
 	{
-	mapPos_   += v_;
+	//mapPos_   += v_;
+	//mapPos_ = mapPos_ % MapSize;
 	CameraPos += v_;
 
-	screenPos_ = CameraSiz/2 + mapPos_ - CameraPos;
+	screenPos_ = CameraSiz/2 + //mapPos_ - CameraPos; это по сути ни фига не позиция на карте, это про
 	sprite_.setPosition (screenPos_);
+    sprite_.setRotation(float(rotation_));
+
 	}
 
 //-----------------------------------------------------------------------------
 
 void Mc::draw()
     {
-    sprite_.setRotation(float(rotation_));
 
     Window->draw(sprite_);
     }
@@ -344,6 +427,7 @@ Map::Map (const Vector &size,
 
     if (tex_.getSize() == Vector(0, 0)) tex_.create( (unsigned int) size.x,
                                                      (unsigned int) size.y );
+
     sprite_ = sf::Sprite(tex, TheWholeTextureRect (tex) );
     }
 
@@ -438,11 +522,11 @@ void temp_game_proc ()
 
 
 
-	sf::Texture txtr;       txtr.loadFromFile ("image1.png");
+	sf::Texture txtr;       txtr.loadFromFile ("shep1.png");
 	Mc player(Vector(0, 0), txtr, sf::IntRect (0, 0, txtr.getSize().x, txtr.getSize().y));
 
     Map map;
-    SpawnTheStars(map, sf::Vector2<int>(5, 20), NStars);
+    SpawnTheStars(map, sf::Vector2<int>(100, 130), /*NStars*/ 19);
 
     Engine engine;
     engine.add (&map);
@@ -464,14 +548,16 @@ void SpawnTheStars(Map& map, sf::Vector2 <int> starSizeRange, int nStars)
         int    randAngleMilt = rand() % 2*2 + 5;
         int    randRotation = (rand() % 3*4 - 3) * 3;
         int    randR = rand() % (starSizeRange.y - starSizeRange.x) + starSizeRange.x;
-        Vector randPos = Vector (rand() % (MapSize.x + 1) - (MapSize.x - CameraSiz.x)/2,
-                                 rand() % (MapSize.y + 1) - (MapSize.y - CameraSiz.y)/2);
 
-        sf::CircleShape shp (randR, randAngleMilt);
-        shp.setFillColor (sf::Color (200 , 50, 50));
+        Vector randPos = Vector (rand() % (MapSize.x + 1) - MapSize.x/2,
+                                 rand() % (MapSize.y + 1) - MapSize.y/2);
+
+        sf::Color randCol (rand()%255, rand()%255, rand()%255);                                    //mappos должна быть абсолюто лоической а для рисования есть screenpos тут нужно разобраться.
+        sf::CircleShape shp (randR, randAngleMilt);                                                                   //тут логическая позиция вычисляется относительно нуля экрана а не карты
+        shp.setFillColor (randCol);                                                                                                     //возможно не только тут
         StaticObject meteor (randPos, shp,  randRotation);
 
-        if (CheckCollision (map, meteor.mapPos_, meteor.radius_)) { i--; continue; }
+        if (CheckCollision (map, meteor.mapPos_, meteor.radius_)) { i--; continue; }                     //DONE IT  no
 
         map.add (meteor);
         }
